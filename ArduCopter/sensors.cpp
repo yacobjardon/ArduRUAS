@@ -47,7 +47,7 @@ int16_t Copter::read_sonar(void)
 
     int16_t temp_alt = sonar.distance_cm();
 
-    if (temp_alt >= sonar.min_distance_cm() && 
+    if (temp_alt >= sonar.min_distance_cm() &&
         temp_alt <= sonar.max_distance_cm() * SONAR_RELIABLE_DISTANCE_PCT) {
         if ( sonar_alt_health < SONAR_ALT_HEALTH_MAX ) {
             sonar_alt_health++;
@@ -214,3 +214,39 @@ void Copter::epm_update()
     epm.update();
 }
 #endif
+
+//RUAS, initialize PSoC i2c connection
+void Copter::init_detection()
+{
+	detection.init();
+}
+
+//RUAS read location coordinates
+Vector3f Copter::read_rel_location(void)
+{
+	float x_loc, y_loc, z_loc;
+	detection.get_location_detection(x_loc, y_loc, z_loc);
+
+	Vector3f d3loc;
+	d3loc.x = x_loc;
+	d3loc.y = y_loc;
+	d3loc.z = z_loc;
+
+	return d3loc;
+}
+
+//RUAS read relative velocity
+Vector3f Copter::read_rel_velocity(void)
+{
+
+	float x_vel, y_vel, z_vel;
+	detection.get_relative_velocity(x_vel, y_vel, z_vel);
+
+	Vector3f d3vel;
+
+	d3vel.x = x_vel;
+	d3vel.y = y_vel;
+	d3vel.z = z_vel;
+
+	return d3vel;
+}

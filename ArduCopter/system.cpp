@@ -131,6 +131,8 @@ void Copter::init_ardupilot()
     
     barometer.init();
 
+    detection.init(); //RUAS
+
     // Register the mavlink service callback. This will run
     // anytime there are more than 5ms remaining in a call to
     // hal.scheduler->delay.
@@ -174,7 +176,7 @@ void Copter::init_ardupilot()
     // trad heli specific initialisation
     heli_init();
 #endif
-    
+
     init_rc_in();               // sets up rc channels from radio
     init_rc_out();              // sets up motors and output to escs
 
@@ -390,7 +392,7 @@ void Copter::update_auto_armed()
         if(mode_has_manual_throttle(control_mode) && ap.throttle_zero && !failsafe.radio) {
             set_auto_armed(false);
         }
-#if FRAME_CONFIG == HELI_FRAME 
+#if FRAME_CONFIG == HELI_FRAME
         // if helicopters are on the ground, and the motor is switched off, auto-armed should be false
         // so that rotor runup is checked again before attempting to take-off
         if(ap.land_complete && !motors.rotor_runup_complete()) {
@@ -399,7 +401,7 @@ void Copter::update_auto_armed()
 #endif // HELI_FRAME
     }else{
         // arm checks
-        
+
 #if FRAME_CONFIG == HELI_FRAME
         // for tradheli if motors are armed and throttle is above zero and the motor is started, auto_armed should be true
         if(motors.armed() && !ap.throttle_zero && motors.rotor_runup_complete()) {

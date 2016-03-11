@@ -121,6 +121,8 @@
 #include <SITL/SITL.h>
 #endif
 
+#include <AP_Detection/AP_Detection_I2C.h>     //RUAS detection IO library
+
 class Copter : public AP_HAL::HAL::Callbacks {
 public:
     friend class GCS_MAVLINK;
@@ -173,6 +175,9 @@ private:
     AP_Baro barometer;
     Compass compass;
     AP_InertialSensor ins;
+
+    //RUAS create a new object in the AP_Detection_I2C class
+    AP_Detection_I2C detection;
 
 #if CONFIG_SONAR == ENABLED
     RangeFinder sonar {serial_manager};
@@ -245,6 +250,16 @@ private:
         };
         uint32_t value;
     } ap;
+
+    //************************************//
+    // RUAS Various detection/avoidance params
+    Vector3f rel_d;                   // The last relative distance update from the detection hardware, x,y,z updated at 5Hz
+    Vector3f rel_v;                   // The last relative velocity update from the detection hardware, x,y,z updated at 5Hz
+
+    float trafic_distance;            // The magnituge of the relative distance
+    float trafic_angle;               // The relative angle between the aircraft
+
+    //************************************//
 
     // This is the state of the flight control system
     // There are multiple states defined such as STABILIZE, ACRO,
@@ -491,8 +506,8 @@ private:
     AP_Rally rally;
 #endif
 
-    // RSSI 
-    AP_RSSI rssi;      
+    // RSSI
+    AP_RSSI rssi;
 
     // Crop Sprayer
 #if SPRAYER == ENABLED
@@ -937,6 +952,9 @@ private:
     void update_optical_flow(void);
     void init_precland();
     void update_precland();
+    void init_detection();                 //RUAS, initialize the i2c serial connection
+    Vector3f read_rel_location(void);      //RUAS, updates from latest serial reading
+    Vector3f read_rel_velocity(void);      //RUAS, updates from latest serial reading
     void read_battery(void);
     void read_receiver_rssi(void);
     void epm_update();

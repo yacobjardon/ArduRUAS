@@ -59,3 +59,5 @@ LIBRARIES += AC_PrecLand
 LIBRARIES += AP_IRLock
 LIBRARIES += AC_InputManager
 LIBRARIES += AP_ADSB
++= AP_Detection
+LIBRARIES += AP_Detection
