@@ -1,4 +1,8 @@
 ------------------------------------------------------------------
+ArduRuas 0.2
+Changes from 0.1:
+1) Added specilized dataflash (sd card) logging functions for detection and avoidance
+------------------------------------------------------------------
 ArduRuas 0.1
 Changes from Coper 3.3.3-rc2:
 1) AP_Detection gives ability to communicate with RUAS detection hardware via i2c
