@@ -54,7 +54,7 @@ public:
 
 	// rate_controller_run - run lowest level body-frame rate controller and send outputs to the motors
 	// should be called at 100hz or more
-	virtual void rate_controller_run();
+	virtual void rate_controller_run(float b_pitch_radio);
 
     // get lean angle max for pilot input that prioritises altitude hold over lean angle
     // NOTE: returns centi-degrees
@@ -62,12 +62,12 @@ public:
 
 	// use_leaky_i - controls whether we use leaky i term for body-frame to motor output stage
 	void use_leaky_i(bool leaky_i) {  _flags_heli.leaky_i = leaky_i; }
-    
+
     // use_flybar_passthrough - controls whether we pass-through
     // control inputs to swash-plate and tail
-    void use_flybar_passthrough(bool passthrough, bool tail_passthrough) {  
-        _flags_heli.flybar_passthrough = passthrough; 
-        _flags_heli.tail_passthrough = tail_passthrough; 
+    void use_flybar_passthrough(bool passthrough, bool tail_passthrough) {
+        _flags_heli.flybar_passthrough = passthrough;
+        _flags_heli.tail_passthrough = tail_passthrough;
     }
 
     // do_piro_comp - controls whether piro-comp is active or not
@@ -106,7 +106,7 @@ private:
 
     // calculate total body frame throttle required to produce the given earth frame throttle
     float get_boosted_throttle(float throttle_in);
-    
+
     // pass through for roll and pitch
     int16_t _passthrough_roll;
     int16_t _passthrough_pitch;
@@ -123,7 +123,7 @@ private:
     // parameters
     AP_Int8         _piro_comp_enabled;             // Flybar present or not.  Affects attitude controller used during ACRO flight mode
     AP_Int16        _hover_roll_trim;               // Angle in centi-degrees used to counter tail rotor thrust in hover
-    
+
     // LPF filters to act on Rate Feedforward terms to linearize output.
     // Due to complicated aerodynamic effects, feedforwards acting too fast can lead
     // to jerks on rate change requests.

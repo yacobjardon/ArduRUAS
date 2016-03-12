@@ -138,7 +138,7 @@ public:
 
     // calculate_armed_scalars - must be implemented by child classes
     virtual void calculate_armed_scalars() = 0;
-    
+
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -194,7 +194,7 @@ protected:
     void                update_throttle_filter();
 
     // move_actuators - moves swash plate and tail rotor
-    virtual void move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out) = 0;
+    virtual void move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out, int16_t _b_pitch_input) = 0;
 
     // reset_swash_servo - free up swash servo for maximum movement
     static void reset_swash_servo(RC_Channel& servo);

@@ -24,7 +24,7 @@ extern const AP_HAL::HAL& hal;
 
 const AP_Param::GroupInfo AP_MotorsHeli_Single::var_info[] = {
     AP_NESTEDGROUPINFO(AP_MotorsHeli, 0),
-    
+
     // @Param: SV1_POS
     // @DisplayName: Servo 1 Position
     // @Description: Angular location of swash servo #1
@@ -51,7 +51,7 @@ const AP_Param::GroupInfo AP_MotorsHeli_Single::var_info[] = {
     // @User: Standard
     // @Increment: 1
     AP_GROUPINFO("SV3_POS", 3, AP_MotorsHeli_Single, _servo3_pos, AP_MOTORS_HELI_SINGLE_SERVO3_POS),
-  
+
     // @Param: TAIL_TYPE
     // @DisplayName: Tail Type
     // @Description: Tail type selection.  Simpler yaw controller used if external gyro is selected
@@ -97,7 +97,7 @@ const AP_Param::GroupInfo AP_MotorsHeli_Single::var_info[] = {
     // @Values: 0:NoFlybar 1:Flybar
     // @User: Standard
     AP_GROUPINFO("FLYBAR_MODE", 9, AP_MotorsHeli_Single, _flybar_mode, AP_MOTORS_HELI_NOFLYBAR),
-  
+
     // @Param: TAIL_SPEED
     // @DisplayName: Direct Drive VarPitch Tail ESC speed
     // @Description: Direct Drive VarPitch Tail ESC speed.  Only used when TailType is DirectDrive VarPitch
@@ -115,7 +115,7 @@ const AP_Param::GroupInfo AP_MotorsHeli_Single::var_info[] = {
     // @Increment: 1
     // @User: Standard
     AP_GROUPINFO("GYR_GAIN_ACRO", 11, AP_MotorsHeli_Single,  _ext_gyro_gain_acro, 0),
-    
+
     AP_GROUPEND
 };
 
@@ -126,7 +126,7 @@ void AP_MotorsHeli_Single::set_update_rate( uint16_t speed_hz )
     _speed_hz = speed_hz;
 
     // setup fast channels
-    uint32_t mask = 
+    uint32_t mask =
         1U << AP_MOTORS_MOT_1 |
         1U << AP_MOTORS_MOT_2 |
         1U << AP_MOTORS_MOT_3 |
@@ -241,7 +241,7 @@ void AP_MotorsHeli_Single::calculate_scalars()
     _collective_mid_pwm = ((float)(_collective_mid-_collective_min))/((float)(_collective_max-_collective_min))*1000.0f;
 
     // calculate maximum collective pitch range from full positive pitch to zero pitch
-    _collective_range = 1000 - _collective_mid_pwm;
+    _collective_range = 1000;
 
     // determine roll, pitch and collective input scaling
     _roll_scaler = (float)_cyclic_max/4500.0f;
@@ -254,7 +254,7 @@ void AP_MotorsHeli_Single::calculate_scalars()
     // send setpoints to main rotor controller and trigger recalculation of scalars
     _main_rotor.set_control_mode(static_cast<RotorControlMode>(_rsc_mode.get()));
     calculate_armed_scalars();
-    
+
     // send setpoints to tail rotor controller and trigger recalculation of scalars
     if (_tail_type == AP_MOTORS_HELI_SINGLE_TAILTYPE_DIRECTDRIVE_VARPITCH) {
         _tail_rotor.set_control_mode(ROTOR_CONTROL_MODE_SPEED_SETPOINT);
@@ -352,10 +352,11 @@ void AP_MotorsHeli_Single::set_delta_phase_angle(int16_t angle)
 //                 - expected ranges:
 //                       roll : -4500 ~ 4500
 //                       pitch: -4500 ~ 4500
-//                       collective: 0 ~ 1000
+//                       throttle: 0 ~ 1000
 //                       yaw:   -4500 ~ 4500
+//                      collective: 0 ~ 1000
 //
-void AP_MotorsHeli_Single::move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out)
+void AP_MotorsHeli_Single::move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out, int16_t coll_in)//RUAS
 {
     int16_t yaw_offset = 0;
     int16_t coll_out_scaled;
@@ -382,22 +383,27 @@ void AP_MotorsHeli_Single::move_actuators(int16_t roll_out, int16_t pitch_out, i
     }
 
     // constrain collective input
-    _collective_out = coll_in;
-    if (_collective_out <= 0) {
-        _collective_out = 0;
+    _collective_out = (728.5-387.6) * (coll_in - 1146) / (1918-1146) + 387.6;// RUAS, this scales the RC input to -2 -> +7 degrees in the 0->1000 range
+    if (_collective_out <= 0) {_collective_out = 0;}
+    if (_collective_out >= 1000) {_collective_out = 1000;}
+
+    _throttle_out = _thtl_out;
+    if (_throttle_out <= 0) {
+        _throttle_out = 0;
         limit.throttle_lower = true;
     }
-    if (_collective_out >= 1000) {
-        _collective_out = 1000;
+    if (_throttle_out >= 1000) {
+        _throttle_out = 1000;
         limit.throttle_upper = true;
     }
 
+/*RUAS
     // ensure not below landed/landing collective
-    if (_heliflags.landing_collective && _collective_out < _land_collective_min) {
+    if (_heliflags.landing_collective && _collective_out < 501) {
         _collective_out = _land_collective_min;
         limit.throttle_lower = true;
     }
-
+*/
     // scale collective pitch
     coll_out_scaled = _collective_out * _collective_scalar + _collective_min - 1000;
 
@@ -412,13 +418,13 @@ void AP_MotorsHeli_Single::move_actuators(int16_t roll_out, int16_t pitch_out, i
             yaw_offset = _collective_yaw_effect * abs(_collective_out - _collective_mid_pwm);
         }
     } else {
-        yaw_offset = 0;  
+        yaw_offset = 0;
     }
 
     // feed power estimate into main rotor controller
     // ToDo: include tail rotor power?
     // ToDo: add main rotor cyclic power?
-    _main_rotor_power = ((float)(abs(_collective_out - _collective_mid_pwm)) / _collective_range);
+    _main_rotor_power = ((float)(_throttle_out) / 1000);
     _main_rotor.set_motor_load(_main_rotor_power);
 
     // swashplate servos
@@ -535,7 +541,7 @@ void AP_MotorsHeli_Single::servo_test()
 // parameter_check - check if helicopter specific parameters are sensible
 bool AP_MotorsHeli_Single::parameter_check(bool display_msg) const
 {
-    // returns false if Phase Angle is outside of range 
+    // returns false if Phase Angle is outside of range
     if ((_phase_angle > 90) || (_phase_angle < -90)){
         if (display_msg) {
             GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "PreArm: H_PHANG out of range");

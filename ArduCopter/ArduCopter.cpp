@@ -18,8 +18,8 @@
  *  ArduCopter Version 3.0
  *  Creator:        Jason Short
  *  Lead Developer: Randy Mackay
- *  Lead Tester:    Marco Robustini 
- *  Based on code and ideas from the Arducopter team: Leonard Hall, Andrew Tridgell, Robert Lefebvre, Pat Hickey, Michael Oborne, Jani Hirvinen, 
+ *  Lead Tester:    Marco Robustini
+ *  Based on code and ideas from the Arducopter team: Leonard Hall, Andrew Tridgell, Robert Lefebvre, Pat Hickey, Michael Oborne, Jani Hirvinen,
                                                       Olivier Adler, Kevin Hester, Arthur Benemann, Jonathan Challinger, John Arne Birkeland,
                                                       Jean-Louis Naudin, Mike Smith, and more
  *  Thanks to:	Chris Anderson, Jordi Munoz, Jason Short, Doug Weibel, Jose Julio
@@ -91,7 +91,7 @@
   133  = 3hz
   400  = 1hz
   4000 = 0.1hz
-  
+
  */
 const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(rc_loop,              100,    130),
@@ -164,7 +164,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 };
 
 
-void Copter::setup() 
+void Copter::setup()
 {
     cliSerial = hal.console;
 
@@ -260,8 +260,8 @@ void Copter::fast_loop()
     read_AHRS();
 
     // run low level rate controllers that only require IMU data
-    attitude_control.rate_controller_run();
-    
+    attitude_control.rate_controller_run(g.rc_7.radio_in);//RUAS
+
 #if FRAME_CONFIG == HELI_FRAME
     update_heli_control_dynamics();
 #endif //HELI_FRAME
@@ -352,7 +352,7 @@ void Copter::update_trigger(void)
         if (should_log(MASK_LOG_CAMERA)) {
             DataFlash.Log_Write_Camera(ahrs, gps, current_loc);
         }
-    }    
+    }
 #endif
 }
 

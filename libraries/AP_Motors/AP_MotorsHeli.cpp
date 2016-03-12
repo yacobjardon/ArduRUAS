@@ -130,7 +130,7 @@ const AP_Param::GroupInfo AP_MotorsHeli::var_info[] = {
     // @Increment: 10
     // @User: Standard
     AP_GROUPINFO("RSC_POWER_LOW", 14, AP_MotorsHeli, _rsc_power_low, AP_MOTORS_HELI_RSC_POWER_LOW_DEFAULT),
-    
+
     // @Param: RSC_POWER_HIGH
     // @DisplayName: Throttle Servo High Power Position
     // @Description: Throttle output at max collective pitch.
@@ -186,7 +186,7 @@ void AP_MotorsHeli::Init()
 void AP_MotorsHeli::output_min()
 {
     // move swash to mid
-    move_actuators(0,0,500,0);
+    move_actuators(0,0,0,0,_b_pitch_input);
 
     update_motor_control(ROTOR_CONTROL_STOP);
 
@@ -225,7 +225,7 @@ void AP_MotorsHeli::output_armed_stabilizing()
         reset_flight_controls();
     }
 
-    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input);
+    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input, _b_pitch_input);
 
     update_motor_control(ROTOR_CONTROL_ACTIVE);
 }
@@ -238,7 +238,7 @@ void AP_MotorsHeli::output_armed_not_stabilizing()
     }
 
     // helicopters always run stabilizing flight controls
-    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input);
+    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input, _b_pitch_input);
 
     update_motor_control(ROTOR_CONTROL_ACTIVE);
 }
@@ -251,7 +251,7 @@ void AP_MotorsHeli::output_armed_zero_throttle()
         reset_flight_controls();
     }
 
-    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input);
+    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input, _b_pitch_input);
 
     update_motor_control(ROTOR_CONTROL_IDLE);
 }
@@ -310,7 +310,7 @@ void AP_MotorsHeli::output_disarmed()
     calculate_scalars();
 
     // helicopters always run stabilizing flight controls
-    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input);
+    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input, _b_pitch_input);
 
     update_motor_control(ROTOR_CONTROL_STOP);
 }
