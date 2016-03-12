@@ -268,6 +268,8 @@ enum ThrowModeState {
 #define LOG_HELI_MSG                    0x20
 #define LOG_PRECLAND_MSG                0x21
 #define LOG_GUIDEDTARGET_MSG            0x22
+#define LOG_DETECTION_MSG               0x23    //RUAS
+#define LOG_AVOIDANCE_MSG               0x24    //RUAS
 
 #define MASK_LOG_ATTITUDE_FAST          (1<<0)
 #define MASK_LOG_ATTITUDE_MED           (1<<1)

@@ -682,6 +682,8 @@ private:
     void Log_Write_Baro(void);
     void Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, int16_t control_in, int16_t tune_low, int16_t tune_high);
     void Log_Write_Home_And_Origin();
+    void Log_Write_Detection(Vector3f v_rel, Vector3f d_rel, float d_mag, float d_angle);                                       //RUAS, write detection data to (sd card) dataflash log
+    void Log_Write_Avoidance(bool avoid_impl, float avoid_roll, float avoid_pitch, bool track_impl, float avoid_yaw_rate);      //RUAS, write avoidance data to (sd card) dataflash log
     void Log_Sensor_Health();
 #if FRAME_CONFIG == HELI_FRAME
     void Log_Write_Heli(void);

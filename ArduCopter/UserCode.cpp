@@ -40,6 +40,8 @@ void Copter::userhook_SlowLoop()
     trafic_distance = pythagorous2(rel_d.x, rel_d.y); //finding the magnitude of the relative distance
     trafic_angle    = atanf(rel_d.y/rel_d.x); // the direction of traffic in the horizontal direction
 
+    Log_Write_Detection(rel_v, rel_d, trafic_distance, trafic_angle);
+
     return;
 }
 #endif

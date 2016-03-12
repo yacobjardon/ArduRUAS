@@ -506,7 +506,7 @@ struct PACKED log_Data_UInt16t {
 };
 
 // Write an uint16_t data packet
-UNUSED_FUNCTION 
+UNUSED_FUNCTION
 void Copter::Log_Write_Data(uint8_t id, uint16_t value)
 {
     if (should_log(MASK_LOG_ANY)) {
@@ -755,6 +755,64 @@ void Copter::Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_tar
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
+//RUAS,
+struct PACKED log_Detection {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float v_rel_x;
+    float v_rel_y;
+    float v_rel_z;
+    float d_rel_x;
+    float d_rel_y;
+    float d_rel_z;
+    float d_mag;
+    float d_angle;
+};
+
+//RUAS, avoidance dataflash log
+void Copter::Log_Write_Detection(Vector3f v_rel, Vector3f d_rel, float d_mag, float d_angle)
+{
+    struct log_Detection pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_DETECTION_MSG),
+        time_us    : AP_HAL::micros64(),
+        v_rel_x    : v_rel.x,
+        v_rel_y    : v_rel.y,
+        v_rel_z    : v_rel.z,
+        d_rel_x    : d_rel.x,
+        d_rel_y    : d_rel.y,
+        d_rel_z    : d_rel.z,
+        d_mag      : d_mag,
+        d_angle    : d_angle
+    };
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+
+//RUAS
+struct PACKED log_avoidance {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    bool avoid_impl;
+    float avoid_roll;
+    float avoid_pitch;
+    bool track_impl;
+    float avoid_yaw_rate;
+};
+
+//RUAS
+void Copter::Log_Write_Avoidance(bool avoid_impl, float avoid_roll, float avoid_pitch, bool track_impl, float avoid_yaw_rate)
+{
+    struct log_avoidance pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_AVOIDANCE_MSG),
+        time_us    : AP_HAL::micros64(),
+        avoid_impl : avoid_impl,
+        avoid_roll : avoid_roll,
+        avoid_pitch: avoid_pitch,
+        track_impl : track_impl,
+        avoid_yaw_rate: avoid_yaw_rate,
+    };
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+
 const struct LogStructure Copter::log_structure[] = {
     LOG_COMMON_STRUCTURES,
 #if AUTOTUNE_ENABLED == ENABLED
@@ -764,34 +822,34 @@ const struct LogStructure Copter::log_structure[] = {
       "ATDE", "Qff",          "TimeUS,Angle,Rate" },
 #endif
     { LOG_PARAMTUNE_MSG, sizeof(log_ParameterTuning),
-      "PTUN", "QBfHHH",          "TimeUS,Param,TunVal,CtrlIn,TunLo,TunHi" },  
-    { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       
+      "PTUN", "QBfHHH",          "TimeUS,Param,TunVal,CtrlIn,TunLo,TunHi" },
+    { LOG_OPTFLOW_MSG, sizeof(log_Optflow),
       "OF",   "QBffff",   "TimeUS,Qual,flowX,flowY,bodyX,bodyY" },
-    { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),       
+    { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),
       "NTUN", "Qffffffffff", "TimeUS,DPosX,DPosY,PosX,PosY,DVelX,DVelY,VelX,VelY,DAccX,DAccY" },
     { LOG_CONTROL_TUNING_MSG, sizeof(log_Control_Tuning),
       "CTUN", "Qhhfffecchh", "TimeUS,ThrIn,AngBst,ThrOut,DAlt,Alt,BarAlt,DSAlt,SAlt,DCRt,CRt" },
-    { LOG_PERFORMANCE_MSG, sizeof(log_Performance), 
+    { LOG_PERFORMANCE_MSG, sizeof(log_Performance),
       "PM",  "QHHIhBH",    "TimeUS,NLon,NLoop,MaxT,PMT,I2CErr,INSErr" },
     { LOG_RATE_MSG, sizeof(log_Rate),
       "RATE", "Qffffffffffff",  "TimeUS,RDes,R,ROut,PDes,P,POut,YDes,Y,YOut,ADes,A,AOut" },
     { LOG_MOTBATT_MSG, sizeof(log_MotBatt),
       "MOTB", "Qffff",  "TimeUS,LiftMax,BatVolt,BatRes,ThLimit" },
-    { LOG_STARTUP_MSG, sizeof(log_Startup),         
+    { LOG_STARTUP_MSG, sizeof(log_Startup),
       "STRT", "Q",            "TimeUS" },
-    { LOG_EVENT_MSG, sizeof(log_Event),         
+    { LOG_EVENT_MSG, sizeof(log_Event),
       "EV",   "QB",           "TimeUS,Id" },
-    { LOG_DATA_INT16_MSG, sizeof(log_Data_Int16t),         
+    { LOG_DATA_INT16_MSG, sizeof(log_Data_Int16t),
       "D16",   "QBh",         "TimeUS,Id,Value" },
-    { LOG_DATA_UINT16_MSG, sizeof(log_Data_UInt16t),         
+    { LOG_DATA_UINT16_MSG, sizeof(log_Data_UInt16t),
       "DU16",  "QBH",         "TimeUS,Id,Value" },
-    { LOG_DATA_INT32_MSG, sizeof(log_Data_Int32t),         
+    { LOG_DATA_INT32_MSG, sizeof(log_Data_Int32t),
       "D32",   "QBi",         "TimeUS,Id,Value" },
-    { LOG_DATA_UINT32_MSG, sizeof(log_Data_UInt32t),         
+    { LOG_DATA_UINT32_MSG, sizeof(log_Data_UInt32t),
       "DU32",  "QBI",         "TimeUS,Id,Value" },
-    { LOG_DATA_FLOAT_MSG, sizeof(log_Data_Float),         
+    { LOG_DATA_FLOAT_MSG, sizeof(log_Data_Float),
       "DFLT",  "QBf",         "TimeUS,Id,Value" },
-    { LOG_ERROR_MSG, sizeof(log_Error),         
+    { LOG_ERROR_MSG, sizeof(log_Error),
       "ERR",   "QBB",         "TimeUS,Subsys,ECode" },
     { LOG_HELI_MSG, sizeof(log_Heli),
       "HELI",  "Qhh",         "TimeUS,DRRPM,ERRPM" },
@@ -799,6 +857,10 @@ const struct LogStructure Copter::log_structure[] = {
       "PL",    "QBffffff",    "TimeUS,Heal,bX,bY,eX,eY,pX,pY" },
     { LOG_GUIDEDTARGET_MSG, sizeof(log_GuidedTarget),
       "GUID",  "QBffffff",    "TimeUS,Type,pX,pY,pZ,vX,vY,vZ" },
+    { LOG_DETECTION_MSG, sizeof(log_Detection),//RUAS
+      "DETC", "Qffffffff",          "TimeUS,VRelX,VRelY,VRelZ,DRelX,DRelY,DRelZ,DMag,DAng" },
+    { LOG_AVOIDANCE_MSG, sizeof(log_avoidance),//RUAS
+      "AVOI", "QBffBf",          "TimeUS,AvImp,AvRll,AvPth,TkImp,AvYaw" },
 };
 
 #if CLI_ENABLED == ENABLED
@@ -827,7 +889,7 @@ void Copter::Log_Write_Vehicle_Startup_Messages()
 
 
 // start a new log
-void Copter::start_logging() 
+void Copter::start_logging()
 {
     if (g.log_bitmask != 0) {
         if (!ap.logging_started) {
@@ -893,6 +955,8 @@ void Copter::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, int16_t
 void Copter::Log_Write_Home_And_Origin() {}
 void Copter::Log_Sensor_Health() {}
 void Copter::Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_target, const Vector3f& vel_target) {};
+void Copter::Log_Write_Avoidance(bool avoid_impl, float avoid_roll, float avoid_pitch, bool track_impl, float avoid_yaw_rate){}   //RUAS
+void Copter::Log_Write_Detection(Vector3f v_rel, Vector3f d_rel, float d_mag, float d_angle){}                                    //RUAS
 
 #if FRAME_CONFIG == HELI_FRAME
 void Copter::Log_Write_Heli() {}
