@@ -356,7 +356,7 @@ void AP_MotorsHeli_Single::set_delta_phase_angle(int16_t angle)
 //                       yaw:   -4500 ~ 4500
 //                      collective: 0 ~ 1000
 //
-void AP_MotorsHeli_Single::move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out, int16_t thtl_in)//RUAS
+void AP_MotorsHeli_Single::move_actuators(int16_t roll_out, int16_t pitch_out, int16_t thtl_in, int16_t yaw_out, int16_t coll_in)//RUAS
 {
     int16_t yaw_offset = 0;
     int16_t coll_out_scaled;
