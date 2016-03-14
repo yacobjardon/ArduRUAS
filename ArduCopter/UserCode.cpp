@@ -35,8 +35,8 @@ void Copter::userhook_MediumLoop()
 void Copter::userhook_SlowLoop()
 {
 
-    rel_d = read_location();
-    rel_v = read_relative_velocity();
+    rel_d = read_rel_location();
+    rel_v = read_rel_velocity();
     trafic_distance = pythagorous2(rel_d.x, rel_d.y); //finding the magnitude of the relative distance
     trafic_angle    = atanf(rel_d.y/rel_d.x); // the direction of traffic in the horizontal direction
 
