@@ -296,9 +296,9 @@ void NOINLINE Copter::send_location(mavlink_channel_t chan)
         current_loc.lng,                // in 1E7 degrees
         (ahrs.get_home().alt + current_loc.alt) * 10UL,      // millimeters above sea level
         current_loc.alt * 10,           // millimeters above ground
-        vel.x,                          // X speed cm/s (+ve North)
-        vel.y,                          // Y speed cm/s (+ve East)
-        vel.z,                          // Z speed cm/s (+ve up)
+        rel_d.x,//vel.x,                          // X speed cm/s (+ve North)
+        rel_d.y,//vel.y, //RUAS                   // Y speed cm/s (+ve East)
+        rel_d.z,//vel.z,                          // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);               // compass heading in 1/100 degree
 }
 
@@ -307,12 +307,12 @@ void NOINLINE Copter::send_nav_controller_output(mavlink_channel_t chan)
     const Vector3f &targets = attitude_control.get_att_target_euler_cd();
     mavlink_msg_nav_controller_output_send(
         chan,
-        targets.x / 1.0e2f,
-        targets.y / 1.0e2f,
-        targets.z / 1.0e2f,
-        wp_bearing / 1.0e2f,
-        wp_distance / 1.0e2f,
-        pos_control.get_alt_error() / 1.0e2f,
+        rel_d.x,
+        rel_d.y,
+        rel_d.z,//RUAS
+        rel_v.x,
+        rel_v.y,
+        rel_v.z,
         0,
         0);
 }
@@ -440,7 +440,7 @@ void Copter::send_pid_tuning(mavlink_channel_t chan)
     const Vector3f &gyro = ahrs.get_gyro();
     if (g.gcs_pid_mask & 1) {
         const DataFlash_Class::PID_Info &pid_info = g.pid_rate_roll.get_pid_info();
-        mavlink_msg_pid_tuning_send(chan, PID_TUNING_ROLL, 
+        mavlink_msg_pid_tuning_send(chan, PID_TUNING_ROLL,
                                     pid_info.desired*0.01f,
                                     degrees(gyro.x),
                                     pid_info.FF*0.01f,
@@ -453,7 +453,7 @@ void Copter::send_pid_tuning(mavlink_channel_t chan)
     }
     if (g.gcs_pid_mask & 2) {
         const DataFlash_Class::PID_Info &pid_info = g.pid_rate_pitch.get_pid_info();
-        mavlink_msg_pid_tuning_send(chan, PID_TUNING_PITCH, 
+        mavlink_msg_pid_tuning_send(chan, PID_TUNING_PITCH,
                                     pid_info.desired*0.01f,
                                     degrees(gyro.y),
                                     pid_info.FF*0.01f,
@@ -466,7 +466,7 @@ void Copter::send_pid_tuning(mavlink_channel_t chan)
     }
     if (g.gcs_pid_mask & 4) {
         const DataFlash_Class::PID_Info &pid_info = g.pid_rate_yaw.get_pid_info();
-        mavlink_msg_pid_tuning_send(chan, PID_TUNING_YAW, 
+        mavlink_msg_pid_tuning_send(chan, PID_TUNING_YAW,
                                     pid_info.desired*0.01f,
                                     degrees(gyro.z),
                                     pid_info.FF*0.01f,
@@ -479,7 +479,7 @@ void Copter::send_pid_tuning(mavlink_channel_t chan)
     }
     if (g.gcs_pid_mask & 8) {
         const DataFlash_Class::PID_Info &pid_info = g.pid_accel_z.get_pid_info();
-        mavlink_msg_pid_tuning_send(chan, PID_TUNING_ACCZ, 
+        mavlink_msg_pid_tuning_send(chan, PID_TUNING_ACCZ,
                                     pid_info.desired*0.01f,
                                     -(ahrs.get_accel_ef_blended().z + GRAVITY_MSS),
                                     pid_info.FF*0.01f,
@@ -685,7 +685,7 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
 
     case MSG_MOUNT_STATUS:
 #if MOUNT == ENABLED
-        CHECK_PAYLOAD_SIZE(MOUNT_STATUS);    
+        CHECK_PAYLOAD_SIZE(MOUNT_STATUS);
         copter.camera_mount.status_msg(chan);
 #endif // MOUNT == ENABLED
         break;
@@ -1382,7 +1382,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
                 }
                 copter.ins.acal_init();
                 copter.ins.get_acal()->start(this);
-                
+
             } else if (is_equal(packet.param5,2.0f)) {
                 // calibrate gyros
                 if (!copter.calibrate_gyros()) {
