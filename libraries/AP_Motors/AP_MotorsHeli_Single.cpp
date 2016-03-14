@@ -387,7 +387,7 @@ void AP_MotorsHeli_Single::move_actuators(int16_t roll_out, int16_t pitch_out, i
     if (_collective_out <= 0) {_collective_out = 0;}
     if (_collective_out >= 1000) {_collective_out = 1000;}
 
-    _throttle_out = thtl_in;
+    float _throttle_out = thtl_in;
     if (_throttle_out <= 0) {
         _throttle_out = 0;
         limit.throttle_lower = true;
