@@ -145,7 +145,7 @@ protected:
     void calculate_roll_pitch_collective_factors();
 
     // heli_move_actuators - moves swash plate and tail rotor
-    void move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out, int16_t thtl_in);//RUAS
+    void move_actuators(int16_t roll_out, int16_t pitch_out, int16_t thtl_in, int16_t yaw_out, int16_t coll_in);//RUAS
 
     // move_yaw - moves the yaw servo
     void move_yaw(int16_t yaw_out);
