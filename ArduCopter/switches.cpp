@@ -77,7 +77,7 @@ void Copter::read_control_switch()
 // check_if_auxsw_mode_used - Check to see if any of the Aux Switches are set to a given mode.
 bool Copter::check_if_auxsw_mode_used(uint8_t auxsw_mode_check)
 {
-    bool ret = g.ch7_option == auxsw_mode_check || g.ch8_option == auxsw_mode_check || g.ch9_option == auxsw_mode_check 
+    bool ret = g.ch7_option == auxsw_mode_check || g.ch8_option == auxsw_mode_check || g.ch9_option == auxsw_mode_check
                 || g.ch10_option == auxsw_mode_check || g.ch11_option == auxsw_mode_check || g.ch12_option == auxsw_mode_check;
 
     return ret;
@@ -218,7 +218,7 @@ void Copter::init_aux_switches()
 
 // init_aux_switch_function - initialize aux functions
 void Copter::init_aux_switch_function(int8_t ch_option, uint8_t ch_flag)
-{    
+{
     // init channel options
     switch(ch_option) {
         case AUXSW_SIMPLE_MODE:
@@ -288,7 +288,7 @@ void Copter::do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
             if (ch_flag == AUX_SWITCH_HIGH) {
 
                 // do not allow saving new waypoints while we're in auto or disarmed
-                if(control_mode == AUTO || !motors.armed()) {
+                if(control_mode == AUTO || control_mode == AUTO_RUAS || !motors.armed()) {
                     return;
                 }
 
@@ -420,7 +420,7 @@ void Copter::do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
                 set_mode(AUTO);
             }else{
                 // return to flight mode switch's flight mode if we are currently in AUTO
-                if (control_mode == AUTO) {
+                if (control_mode == AUTO || control_mode == AUTO_RUAS) {
                     reset_control_switch();
                 }
             }
@@ -502,7 +502,7 @@ void Copter::do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
             // enable or disable accel limiting by restoring defaults
             attitude_control.accel_limiting(ch_flag == AUX_SWITCH_HIGH);
             break;
-        
+
 #if MOUNT == ENABLE
         case AUXSW_RETRACT_MOUNT:
             switch (ch_flag) {
@@ -641,4 +641,3 @@ void Copter::auto_trim()
         }
     }
 }
-

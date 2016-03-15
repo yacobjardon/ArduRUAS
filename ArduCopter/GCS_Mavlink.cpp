@@ -48,6 +48,7 @@ NOINLINE void Copter::send_heartbeat(mavlink_channel_t chan)
     base_mode = MAV_MODE_FLAG_STABILIZE_ENABLED;
     switch (control_mode) {
     case AUTO:
+    case AUTO_RUAS:
     case RTL:
     case LOITER:
     case GUIDED:
@@ -160,6 +161,7 @@ NOINLINE void Copter::send_extended_status1(mavlink_channel_t chan)
     switch (control_mode) {
     case ALT_HOLD:
     case AUTO:
+    case AUTO_RUAS:
     case GUIDED:
     case LOITER:
     case RTL:
@@ -1635,7 +1637,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         mavlink_msg_set_position_target_local_ned_decode(msg, &packet);
 
         // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if ((copter.control_mode != GUIDED) && !(copter.control_mode == AUTO && copter.auto_mode == Auto_NavGuided)) {
+        if ((copter.control_mode != GUIDED) && !((copter.control_mode == AUTO || copter.control_mode == AUTO_RUAS)&& copter.auto_mode == Auto_NavGuided)) {
             break;
         }
 
@@ -1711,7 +1713,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         mavlink_msg_set_position_target_global_int_decode(msg, &packet);
 
         // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if ((copter.control_mode != GUIDED) && !(copter.control_mode == AUTO && copter.auto_mode == Auto_NavGuided)) {
+        if ((copter.control_mode != GUIDED) && !((copter.control_mode == AUTO || copter.control_mode == AUTO_RUAS) && copter.auto_mode == Auto_NavGuided)) {
             break;
         }
 

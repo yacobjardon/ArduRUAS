@@ -16,7 +16,7 @@ void Copter::failsafe_radio_on_event()
     if (should_disarm_on_failsafe()) {
         init_disarm_motors();
     } else {
-        if (control_mode == AUTO && g.failsafe_throttle == FS_THR_ENABLED_CONTINUE_MISSION) {
+        if ((control_mode == AUTO || control_mode == AUTO_RUAS) && g.failsafe_throttle == FS_THR_ENABLED_CONTINUE_MISSION) {
             // continue mission
         } else if (control_mode == LAND && g.failsafe_battery_enabled == FS_BATT_LAND && failsafe.battery) {
             // continue landing
@@ -116,6 +116,7 @@ void Copter::failsafe_gcs_check()
     // use the throttle failsafe setting to decide what to do
     switch(control_mode) {
         case STABILIZE:
+        case STAB_RUAS:
         case ACRO:
         case SPORT:
             // if throttle is zero disarm motors
@@ -130,6 +131,7 @@ void Copter::failsafe_gcs_check()
             }
             break;
         case AUTO:
+        case AUTO_RUAS:
             // if mission has not started AND vehicle is landed, disarm motors
             if (!ap.auto_armed && ap.land_complete) {
                 init_disarm_motors();
@@ -185,11 +187,13 @@ void Copter::set_mode_RTL_or_land_with_pause()
 bool Copter::should_disarm_on_failsafe() {
     switch(control_mode) {
         case STABILIZE:
+        case STAB_RUAS:
         case ACRO:
             // if throttle is zero OR vehicle is landed disarm motors
             return ap.throttle_zero || ap.land_complete;
             break;
         case AUTO:
+        case AUTO_RUAS:
             // if mission has not started AND vehicle is landed, disarm motors
             return !ap.auto_armed && ap.land_complete;
             break;
@@ -205,4 +209,3 @@ void Copter::update_events()
 {
     ServoRelayEvents.update_events();
 }
-

@@ -86,16 +86,16 @@ bool Copter::start_command(const AP_Mission::Mission_Command& cmd)
     case MAV_CMD_DO_SET_SERVO:
         ServoRelayEvents.do_set_servo(cmd.content.servo.channel, cmd.content.servo.pwm);
         break;
-        
+
     case MAV_CMD_DO_SET_RELAY:
         ServoRelayEvents.do_set_relay(cmd.content.relay.num, cmd.content.relay.state);
         break;
-        
+
     case MAV_CMD_DO_REPEAT_SERVO:
         ServoRelayEvents.do_repeat_servo(cmd.content.repeat_servo.channel, cmd.content.repeat_servo.pwm,
                                          cmd.content.repeat_servo.repeat_count, cmd.content.repeat_servo.cycle_time * 1000.0f);
         break;
-        
+
     case MAV_CMD_DO_REPEAT_RELAY:
         ServoRelayEvents.do_repeat_relay(cmd.content.repeat_relay.num, cmd.content.repeat_relay.repeat_count,
                                          cmd.content.repeat_relay.cycle_time * 1000.0f);
@@ -163,7 +163,7 @@ bool Copter::start_command(const AP_Mission::Mission_Command& cmd)
 //      we double check that the flight mode is AUTO to avoid the possibility of ap-mission triggering actions while we're not in AUTO mode
 bool Copter::verify_command_callback(const AP_Mission::Mission_Command& cmd)
 {
-    if (control_mode == AUTO) {
+    if (control_mode == AUTO || control_mode == AUTO_RUAS) {
         bool cmd_complete = verify_command(cmd);
 
         // send message to GCS
@@ -800,7 +800,7 @@ bool Copter::do_guided(const AP_Mission::Mission_Command& cmd)
     Vector3f pos_or_vel;    // target location or velocity
 
     // only process guided waypoint if we are in guided mode
-    if (control_mode != GUIDED && !(control_mode == AUTO && auto_mode == Auto_NavGuided)) {
+    if (control_mode != GUIDED && !((control_mode == AUTO || control_mode == AUTO_RUAS) && auto_mode == Auto_NavGuided)) {
         return false;
     }
 
@@ -904,7 +904,7 @@ void Copter::log_picture()
     } else {
         if (should_log(MASK_LOG_CAMERA)) {
             DataFlash.Log_Write_Trigger(ahrs, gps, current_loc);
-        }      
+        }
     }
 }
 
