@@ -255,10 +255,18 @@ private:
     // RUAS Various detection/avoidance params
     Vector3f rel_d;                   // The last relative distance update from the detection hardware, x,y,z updated at 5Hz
     Vector3f rel_v;                   // The last relative velocity update from the detection hardware, x,y,z updated at 5Hz
+    Vector3f _rel_d;                  // interpolated steps to prevent bad/noize data crashing heli
+    Vector3f _rel_v;                  // interpolated steps to prevent bad/noize data crashing heli
 
     float trafic_distance;            // The magnituge of the relative distance
     float trafic_angle;               // The relative angle between the aircraft
+    float _trafic_distance;           // interpolated steps
+    float _trafic_angle;              // interpolated steps
 
+    bool do_avoid_maneuver;           // if an avoidance manouver (roll and pitch) is being implemented
+    bool do_track_maneuver;           // if a traching manouver (yaw) is being implemented
+    float avoidance_roll_angle_cd;    // required roll for avoidance manouver, in centi-degrees
+    float avoidance_pitch_angle_cd;   // required pitch for avoidance manouver, in centi-degrees
     //************************************//
 
     // This is the state of the flight control system
@@ -730,10 +738,12 @@ private:
     void althold_run();
     bool auto_init(bool ignore_checks);
     void auto_run();
+    void auto_run_ruas();
     void auto_takeoff_start(float final_alt_above_home);
     void auto_takeoff_run();
     void auto_wp_start(const Vector3f& destination);
     void auto_wp_run();
+    void auto_wp_run_ruas();
     void auto_spline_run();
     void auto_land_start();
     void auto_land_start(const Vector3f& destination);
@@ -890,6 +900,7 @@ private:
     void heli_acro_run();
     bool heli_stabilize_init(bool ignore_checks);
     void heli_stabilize_run();
+    void heli_stabilize_run_ruas();
     void read_inertia();
     void read_inertial_altitude();
     bool land_complete_maybe();

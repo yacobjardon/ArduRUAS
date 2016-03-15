@@ -348,16 +348,16 @@
  # define FLIGHT_MODE_1                  STABILIZE
 #endif
 #ifndef FLIGHT_MODE_2
- # define FLIGHT_MODE_2                  STABILIZE
+ # define FLIGHT_MODE_2                  STAB_RUAS
 #endif
 #ifndef FLIGHT_MODE_3
- # define FLIGHT_MODE_3                  STABILIZE
+ # define FLIGHT_MODE_3                  STAB_RUAS
 #endif
 #ifndef FLIGHT_MODE_4
- # define FLIGHT_MODE_4                  STABILIZE
+ # define FLIGHT_MODE_4                  STAB_RUAS
 #endif
 #ifndef FLIGHT_MODE_5
- # define FLIGHT_MODE_5                  STABILIZE
+ # define FLIGHT_MODE_5                  STAB_RUAS
 #endif
 #ifndef FLIGHT_MODE_6
  # define FLIGHT_MODE_6                  STABILIZE

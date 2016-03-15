@@ -105,7 +105,9 @@ enum autopilot_modes {
     AUTOTUNE =     15,  // automatically tune the vehicle's roll and pitch gains
     POSHOLD =      16,  // automatic position hold with manual override, with automatic throttle
     BRAKE =        17,  // full-brake using inertial/GPS system, no pilot input
-    THROW =        18   // throw to launch mode using inertial/GPS system, no pilot input
+    THROW =        18,   // throw to launch mode using inertial/GPS system, no pilot input
+    STAB_RUAS =    19,  //RUAS manual mode
+    AUTO_RUAS =    20   //RUAS auto mode, only works with straigt line WP's
 };
 
 // Tuning enumeration

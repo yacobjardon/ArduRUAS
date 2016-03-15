@@ -59,7 +59,49 @@ void Copter::auto_run()
 
     case Auto_WP:
     case Auto_CircleMoveToEdge:
-        auto_wp_run();
+        auto_wp_run_ruas();
+        break;
+
+    case Auto_Land:
+        auto_land_run();
+        break;
+
+    case Auto_RTL:
+        auto_rtl_run();
+        break;
+
+    case Auto_Circle:
+        auto_circle_run();
+        break;
+
+    case Auto_Spline:
+        auto_spline_run();
+        break;
+
+    case Auto_NavGuided:
+#if NAV_GUIDED == ENABLED
+        auto_nav_guided_run();
+#endif
+        break;
+
+    case Auto_Loiter:
+        auto_loiter_run();
+        break;
+    }
+}
+
+void Copter::auto_run_ruas() //RUAS
+{
+    // call the correct auto controller
+    switch (auto_mode) {
+
+    case Auto_TakeOff:
+        auto_takeoff_run();
+        break;
+
+    case Auto_WP:
+    case Auto_CircleMoveToEdge:
+        auto_wp_run_ruas();
         break;
 
     case Auto_Land:
@@ -206,10 +248,67 @@ void Copter::auto_wp_run()
     }
 }
 
+
+void Copter::auto_wp_run_ruas()
+{
+    avoidance_maneuver(); // updates the avoidnace vectors before the arm checks kill the flight mode for debuging
+
+    // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
+    if(!ap.auto_armed || !motors.get_interlock()) {
+        // To-Do: reset waypoint origin to current location because copter is probably on the ground so we don't want it lurching left or right on take-off
+        //    (of course it would be better if people just used take-off)
+#if FRAME_CONFIG == HELI_FRAME  // Helicopters always stabilize roll/pitch/yaw
+        // call attitude controller
+        attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
+        attitude_control.set_throttle_out(0,false,g.throttle_filt);
+#else   // multicopters do not stabilize roll/pitch/yaw when disarmed
+        attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
+#endif
+        // clear i term when we're taking off
+        set_throttle_takeoff();
+        return;
+    }
+
+    // pilot has presidance over yaw direction
+    float target_yaw_rate = 0;
+    if (!failsafe.radio && (channel_yaw->control_in >= 200 || channel_yaw->control_in <= -200 )) {
+        // get pilot's desired yaw rate
+        target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->control_in);
+        if (!is_zero(target_yaw_rate)) {set_auto_yaw_mode(AUTO_YAW_HOLD);}
+
+    // if no pilot input, heli can (will) point to sourindig traffic
+    }else if(do_track_maneuver){
+      target_yaw_rate = _trafic_angle * 100 * g.acro_yaw_p;
+      if (!is_zero(target_yaw_rate)) {set_auto_yaw_mode(AUTO_YAW_HOLD);}
+    } else {
+      set_auto_yaw_mode(AUTO_YAW_LOOK_AT_NEXT_WP);
+    }
+    //if no pilot input, and no oncomming traffic, point towards next wp
+
+
+    // run waypoint controller
+    wp_nav.update_wpnav();
+    // call z-axis position controller (wpnav should have already updated it's alt target)
+    pos_control.update_z_controller();
+
+
+    //in auto modes, the roll/pitch has no pilot input
+    if(do_avoid_maneuver){
+      attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(avoidance_roll_angle_cd, avoidance_pitch_angle_cd, target_yaw_rate);
+    }else if (auto_yaw_mode == AUTO_YAW_HOLD) {
+        // roll & pitch from waypoint controller, yaw rate from pilot
+        attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);
+    }else{
+        // roll, pitch from waypoint controller, yaw heading from auto_heading()
+        attitude_control.input_euler_angle_roll_pitch_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), get_auto_heading(),true);
+    }
+}
+
+
 // auto_spline_start - initialises waypoint controller to implement flying to a particular destination using the spline controller
 //  seg_end_type can be SEGMENT_END_STOP, SEGMENT_END_STRAIGHT or SEGMENT_END_SPLINE.  If Straight or Spline the next_destination should be provided
-void Copter::auto_spline_start(const Vector3f& destination, bool stopped_at_start, 
-                               AC_WPNav::spline_segment_end_type seg_end_type, 
+void Copter::auto_spline_start(const Vector3f& destination, bool stopped_at_start,
+                               AC_WPNav::spline_segment_end_type seg_end_type,
                                const Vector3f& next_destination)
 {
     auto_mode = Auto_Spline;
@@ -677,4 +776,3 @@ float Copter::get_auto_heading(void)
         break;
     }
 }
-
