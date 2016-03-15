@@ -39,7 +39,7 @@ void Copter::heli_init()
 void Copter::check_dynamic_flight(void)
 {
     if (!motors.armed() || !motors.rotor_runup_complete() ||
-        control_mode == LAND || (control_mode==RTL && rtl_state == RTL_Land) || (control_mode == AUTO && auto_mode == Auto_Land)) {
+        control_mode == LAND || (control_mode==RTL && rtl_state == RTL_Land) || ((control_mode == AUTO || control_mode == AUTO_RUAS)&& auto_mode == Auto_Land)) {
         heli_dynamic_flight_counter = 0;
         heli_flags.dynamic_flight = false;
         return;
@@ -62,7 +62,7 @@ void Copter::check_dynamic_flight(void)
         // rangefinder lock consider it to be dynamic flight
         moving = (sonar.distance_cm() > 200);
     }
-    
+
     if (moving) {
         // if moving for 2 seconds, set the dynamic flight flag
         if (!heli_flags.dynamic_flight) {
@@ -95,7 +95,7 @@ void Copter::update_heli_control_dynamics(void)
 
     if (ap.land_complete || (motors.get_desired_rotor_speed() == 0)){
         // if we are landed or there is no rotor power demanded, decrement slew scalar
-        hover_roll_trim_scalar_slew--;        
+        hover_roll_trim_scalar_slew--;
     } else {
         // if we are not landed and motor power is demanded, increment slew scalar
         hover_roll_trim_scalar_slew++;
@@ -113,6 +113,7 @@ void Copter::heli_update_landing_swash()
     switch(control_mode) {
         case ACRO:
         case STABILIZE:
+        case STAB_RUAS:
         case DRIFT:
         case SPORT:
             // manual modes always uses full swash range
@@ -133,6 +134,7 @@ void Copter::heli_update_landing_swash()
             break;
 
         case AUTO:
+        case AUTO_RUAS:
             if (auto_mode == Auto_Land) {
                 motors.set_collective_for_landing(true);
             }else{

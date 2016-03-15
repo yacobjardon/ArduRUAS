@@ -16,8 +16,8 @@ void Copter::landinggear_update(){
         // To-Do: should we pause the auto-land procedure to give time for gear to come down?
         if (control_mode == LAND ||
            (control_mode==RTL && (rtl_state == RTL_LoiterAtHome || rtl_state == RTL_Land || rtl_state == RTL_FinalDescent)) ||
-           (control_mode == AUTO && auto_mode == Auto_Land) ||
-           (control_mode == AUTO && auto_mode == Auto_RTL && (rtl_state == RTL_LoiterAtHome || rtl_state == RTL_Land || rtl_state == RTL_FinalDescent))) {
+           ((control_mode == AUTO || control_mode == AUTO_RUAS) && auto_mode == Auto_Land) ||
+           ((control_mode == AUTO || control_mode == AUTO_RUAS) && auto_mode == Auto_RTL && (rtl_state == RTL_LoiterAtHome || rtl_state == RTL_Land || rtl_state == RTL_FinalDescent))) {
             landinggear.force_deploy(true);
         }
 
@@ -32,6 +32,6 @@ void Copter::landinggear_update(){
             }
         }
 
-        last_deploy_status = landinggear.deployed();        
+        last_deploy_status = landinggear.deployed();
     }
 }
