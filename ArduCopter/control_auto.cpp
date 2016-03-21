@@ -59,7 +59,7 @@ void Copter::auto_run()
 
     case Auto_WP:
     case Auto_CircleMoveToEdge:
-        auto_wp_run_ruas();
+        auto_wp_run();
         break;
 
     case Auto_Land:

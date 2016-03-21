@@ -32,6 +32,13 @@ bool Copter::set_mode(uint8_t mode)
             break;
 
         case STABILIZE:
+            #if FRAME_CONFIG == HELI_FRAME
+                success = heli_stabilize_init(ignore_checks);
+            #else
+                success = stabilize_init(ignore_checks);
+            #endif
+            break;
+
         case STAB_RUAS:
             #if FRAME_CONFIG == HELI_FRAME
                 success = heli_stabilize_init(ignore_checks);
@@ -45,6 +52,9 @@ bool Copter::set_mode(uint8_t mode)
             break;
 
         case AUTO:
+            success = auto_init(ignore_checks);
+            break;
+
         case AUTO_RUAS:
             success = auto_init(ignore_checks);
             break;
@@ -352,61 +362,54 @@ void Copter::notify_flight_mode(uint8_t mode) {
 //RUAS
 void Copter::avoidance_maneuver()
 {
+  float safety_bubble = 500;            // 5 meters safety bubble around the red dragons helicopter
+  float manouver_bubble = 650;          // where we start moving
+  float avoidance_gain = 500;           // avoidance gain (arbitrary)
 
-    float safety_bubble = 500;            // 5 meters safety bubble around the red dragons helicopter
-    float manouver_bubble = 650;          // where we start moving
-    float avoidance_gain = 500;           // avoidance gain (arbitrary)
+  float avoidance_accel_roll;         // acceleration in roll for avoidance, calculated based on distance, rel velocity, safety bubble, etc
+  float avoidance_accel_pitch;        // acceleration in pitch for avoidance
+  float response;
 
-    float avoidance_accel_roll;         // acceleration in roll for avoidance, calculated based on distance, rel velocity, safety bubble, etc
-    float avoidance_accel_pitch;        // acceleration in pitch for avoidance
-    float response;
 
-    //interpolating the relative position and speed
-    _rel_v    += (rel_v - _rel_v) / 400 * 10; // breaking the relative velocity updates into steps, in cm(?)
-    _rel_d    += (rel_d - _rel_d) / 400 * 10; // breaking the relative distance updates into steps, in cm(?)
-    _trafic_distance += (trafic_distance - pythagorous2(_rel_d.x, _rel_d.y)) / 400 * 10; //finding the magnitude of the relative distance
-    _trafic_angle    += (trafic_angle - atanf(_rel_d.y/_rel_d.x)) / 400 * 10; // the direction of traffic in the horizontal direction
-
+  if(abs(_trafic_angle) < 70 && _trafic_distance > 50 && _trafic_distance < 1000 ) {
+    do_track_maneuver = true;
+  } else {
     do_track_maneuver = false;  // if we will yaw (but not move) towards the traffic
-    do_avoid_maneuver = false;  // if we will move to avoid
-    avoidance_roll_angle_cd  = 0;  // clear on each iteration, just in case
-    avoidance_pitch_angle_cd = 0;  // clear on each iteration, just in case
+  }
 
 
-    if(abs(trafic_angle) < 30 && trafic_distance < 800 && trafic_distance > 50) {do_track_maneuver = true;}
+  if(abs(_trafic_angle) < 70 && _trafic_distance > 50 && _trafic_distance < 700)
+  {
+    do_avoid_maneuver = true;
 
+    if(_trafic_distance < safety_bubble){_trafic_distance = safety_bubble;} // this prevents the limit from going to infinaty
 
-    if( abs(trafic_angle) < 30 && trafic_distance < manouver_bubble && trafic_distance > 50)
-    {
-      do_avoid_maneuver = true;
+    response = 10*(avoidance_gain)/(_trafic_distance*sqrt(safety_bubble)-1); // response parameter as calculated in the MATLAB simulations
 
-      if(trafic_distance < safety_bubble){trafic_distance = safety_bubble;} // this prevents the limit from going to infinaty
+    avoidance_accel_roll  = _rel_v.x * response; // response in roll
+    avoidance_accel_pitch = _rel_v.y * response; // respose in pitch
+    avoidance_roll_angle_cd = atanf(avoidance_accel_roll/9.81);   // bank angle calculation
+    avoidance_pitch_angle_cd = atanf(avoidance_accel_pitch/9.81); // pitch angle calculation
 
-      response = 10*(avoidance_gain)/(trafic_distance*sqrt(safety_bubble)-1); // response parameter as calculated in the MATLAB simulations
+    // check if avoidance roll angle is more than 5 degrees (according to Jacob)
+    if(abs(avoidance_roll_angle_cd) > 5) {avoidance_roll_angle_cd = 5;}
 
-      avoidance_accel_roll = rel_v.x * response;  // response in roll
-      avoidance_accel_pitch = rel_v.y * response; // respose in pitch
+    // check if avoidance roll angle is more than 5 degrees (according to Jacob)
+    if(abs(avoidance_pitch_angle_cd) > 5) {avoidance_pitch_angle_cd = 5;}
 
-      avoidance_roll_angle_cd = atanf(avoidance_accel_roll/9.81);   // bank angle calculation
-      avoidance_pitch_angle_cd = atanf(avoidance_accel_pitch/9.81); // pitch angle calculation
+    // run simulation and find relationship between pitch angle and acceleration
+    // check if the helicopter is coming from the left or right to determine if the roll should be left or right
+    if(_rel_d.y < 0) { avoidance_roll_angle_cd = -avoidance_roll_angle_cd;}
+    if(_rel_d.x < 0) { avoidance_pitch_angle_cd = -avoidance_pitch_angle_cd;}
 
-      // check if avoidance roll angle is more than 5 degrees (according to Jacob)
-      if(abs(avoidance_roll_angle_cd) > 5) {avoidance_roll_angle_cd = 5;}
+    // convert angle to centi-degrees
+    avoidance_roll_angle_cd *= -10000;
+    avoidance_pitch_angle_cd *= -10000;
+  } else {
+    do_avoid_maneuver = false;
+  }
 
-      // check if avoidance roll angle is more than 5 degrees (according to Jacob)
-      if(abs(avoidance_pitch_angle_cd) > 5) {avoidance_pitch_angle_cd = 5;}
-
-      // run simulation and find relationship between pitch angle and acceleration
-      // check if the helicopter is coming from the left or right to determine if the roll should be left or right
-      if(rel_d.y < 0) { avoidance_roll_angle_cd = -avoidance_roll_angle_cd;}
-      if(rel_d.x < 0) { avoidance_pitch_angle_cd = -avoidance_pitch_angle_cd;}
-
-      // convert angle to centi-degrees
-      avoidance_roll_angle_cd *= 10000;
-      avoidance_pitch_angle_cd *= 10000;
-    }
-
-    Log_Write_Avoidance(do_avoid_maneuver, avoidance_roll_angle_cd, avoidance_pitch_angle_cd, do_track_maneuver, trafic_angle * g.acro_yaw_p);
+  Log_Write_Avoidance(do_avoid_maneuver, avoidance_roll_angle_cd, avoidance_pitch_angle_cd, do_track_maneuver, trafic_angle * g.acro_yaw_p);
 
 }
 

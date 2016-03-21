@@ -263,6 +263,8 @@ private:
     float _trafic_distance;           // interpolated steps
     float _trafic_angle;              // interpolated steps
 
+    float detect_health;              // fuzzy logic control values
+
     bool do_avoid_maneuver;           // if an avoidance manouver (roll and pitch) is being implemented
     bool do_track_maneuver;           // if a traching manouver (yaw) is being implemented
     float avoidance_roll_angle_cd;    // required roll for avoidance manouver, in centi-degrees
@@ -901,6 +903,7 @@ private:
     bool heli_stabilize_init(bool ignore_checks);
     void heli_stabilize_run();
     void heli_stabilize_run_ruas();
+    void avoidance_maneuver();
     void read_inertia();
     void read_inertial_altitude();
     bool land_complete_maybe();

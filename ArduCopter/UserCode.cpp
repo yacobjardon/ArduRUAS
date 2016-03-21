@@ -35,20 +35,61 @@ void Copter::userhook_MediumLoop()
 void Copter::userhook_SlowLoop()
 {
 
-    rel_d = read_rel_location();
-    rel_v = read_rel_velocity();
-    trafic_distance = pythagorous2(rel_d.x, rel_d.y); //finding the magnitude of the relative distance
-    trafic_angle    = atanf(rel_d.y/rel_d.x); // the direction of traffic in the horizontal direction
+      Vector3f new_d = read_rel_location();
+      Vector3f new_v = read_rel_velocity();
+      float new_distance = pythagorous2(new_d.x, new_d.y);
 
-    Log_Write_Detection(rel_v, rel_d, trafic_distance, trafic_angle);
+      rel_v.x = -25;//100/new_d.y;
+      rel_v.y = -25;//100/new_d.x; //these are static for testing, delete in flight
+      rel_v.z = 0;
 
-    return;
-}
+  /*
+      //if no new update, assume object is moving away and slowing
+      if(trafic_distance == new_distance || new_distance < 5 || new_distance > 1100){
+
+        _rel_d *= 1.001;
+        _rel_v *= 1/1.001;
+        detect_health -= .05; //for fuzzy logic control
+
+        //if new update, slew towards new updates
+      } else {
+
+        _rel_v    += (rel_v - _rel_v) / 1500 ;
+        _rel_d    += (rel_d - _rel_d) / 1500 ;
+        detect_health += .1; //for fuzzy logic control
+
+      }
+      if (detect_health < 0) {detect_health = 0;}
+      if (detect_health > 1) {detect_health = 1;}
+  */
+
+
+     rel_d = new_d;
+     //rel_v = new_v;
+     _rel_v = rel_v; //+= (new_v - _rel_v) / 10 ;
+     _rel_d = new_d;//+= (new_d - _rel_d) / 10 ;
+
+  if (abs(trafic_distance - new_distance) < 1){
+    _rel_d *= 0.9999;
+    _rel_v *= 0.9999;
+  }
+      trafic_distance = pythagorous2(rel_d.x, rel_d.y);
+      trafic_angle    = atanf(rel_d.y/rel_d.x); // the direction of traffic in the horizontal direction
+      _trafic_distance = pythagorous2(_rel_d.x, _rel_d.y); //finding the magnitude of the relative distance
+      _trafic_angle    = atanf(_rel_d.y/_rel_d.x); // the direction of traffic in the horizontal direction
+
+      //only dataflash log straight from the antena
+      Log_Write_Detection(new_v, new_d, new_distance, trafic_angle);
+
+      return;}
 #endif
 
 #ifdef USERHOOK_SUPERSLOWLOOP
 void Copter::userhook_SuperSlowLoop()
 {
-    // put your 1Hz code here
+  if(do_track_maneuver && do_avoid_maneuver)
+       {gcs_send_text(MAV_SEVERITY_CRITICAL,"In AVOIDANCE region!!");}
+  else if(do_track_maneuver)
+       {gcs_send_text(MAV_SEVERITY_CRITICAL,"In TRACKING region!!");}
 }
 #endif

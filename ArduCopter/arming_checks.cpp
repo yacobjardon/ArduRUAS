@@ -37,7 +37,7 @@ bool Copter::pre_arm_checks(bool display_failure)
     if (motors.armed()) {
         return true;
     }
-
+/*//RUAS, the interloc is causing other issues
     // check if motor interlock and Emergency Stop aux switches are used
     // at the same time.  This cannot be allowed.
     if (check_if_auxsw_mode_used(AUXSW_MOTOR_INTERLOCK) && check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP)){
@@ -57,6 +57,7 @@ bool Copter::pre_arm_checks(bool display_failure)
         }
         return false;
     }
+    */
 
     // exit immediately if we've already successfully performed the pre-arm check
     if (ap.pre_arm_check) {
@@ -562,13 +563,13 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     if (!pre_arm_gps_checks(display_failure)) {
         return false;
     }
-
+/*RUAS, the interlock is causing issues
     // if we are using motor interlock switch and it's enabled, fail to arm
     if (ap.using_interlock && motors.get_interlock()){
         gcs_send_text(MAV_SEVERITY_CRITICAL,"Arm: Motor Interlock Enabled");
         return false;
     }
-
+*/
     // if we are not using Emergency Stop switch option, force Estop false to ensure motors
     // can run normally
     if (!check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP)){
