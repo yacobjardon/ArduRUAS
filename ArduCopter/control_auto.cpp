@@ -294,7 +294,7 @@ void Copter::auto_wp_run_ruas()
 
     //in auto modes, the roll/pitch has no pilot input
     if(do_avoid_maneuver){
-      attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(avoidance_roll_angle_cd, avoidance_pitch_angle_cd, target_yaw_rate);
+      attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(avoidance_roll_angle_cd, 0, target_yaw_rate);
     }else if (auto_yaw_mode == AUTO_YAW_HOLD) {
         // roll & pitch from waypoint controller, yaw rate from pilot
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);

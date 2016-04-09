@@ -110,7 +110,7 @@ void Copter::heli_stabilize_run_ruas()
 
       //If no pilot input and need to implement manouver
     }else if(do_avoid_maneuver){
-      get_pilot_desired_lean_angles(avoidance_roll_angle_cd, avoidance_pitch_angle_cd , target_roll, target_pitch, aparm.angle_max);
+      get_pilot_desired_lean_angles(avoidance_roll_angle_cd, 0 , target_roll, target_pitch, aparm.angle_max);
 
       //If no pilot input and no mpending crash, hold middlestick position
     }else{
@@ -123,7 +123,7 @@ void Copter::heli_stabilize_run_ruas()
       target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->control_in);
     }else if(do_track_maneuver){
       //point to air traffic
-      target_yaw_rate = _trafic_angle * 100 * g.acro_yaw_p;//check this
+      target_yaw_rate = 0;//_trafic_angle * 100 * g.acro_yaw_p;//check this
     }else{
       //point to current heading
       target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->control_in);

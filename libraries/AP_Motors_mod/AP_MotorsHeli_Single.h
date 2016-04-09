@@ -97,7 +97,7 @@ public:
 
     // calculate_armed_scalars - recalculates scalars that can change while armed
     void calculate_armed_scalars();
-    
+
     // get_motor_mask - returns a bitmask of which outputs are being used for motors or servos (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
     uint16_t get_motor_mask();
@@ -129,7 +129,7 @@ public:
 
     // parameter_check - returns true if helicopter specific parameters are sensible, used for pre-arm check
     bool parameter_check(bool display_msg) const;
-    
+
     // var_info
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -145,7 +145,7 @@ protected:
     void calculate_roll_pitch_collective_factors();
 
     // heli_move_actuators - moves swash plate and tail rotor
-    void move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out);
+    void move_actuators(int16_t roll_out, int16_t pitch_out, int16_t thtl_in, int16_t yaw_out, int16_t coll_in);//RUAS
 
     // move_yaw - moves the yaw servo
     void move_yaw(int16_t yaw_out);
@@ -174,7 +174,7 @@ protected:
     // parameters
     AP_Int16        _servo1_pos;                // Angular location of swash servo #1
     AP_Int16        _servo2_pos;                // Angular location of swash servo #2
-    AP_Int16        _servo3_pos;                // Angular location of swash servo #3    
+    AP_Int16        _servo3_pos;                // Angular location of swash servo #3
     AP_Int16        _tail_type;                 // Tail type used: Servo, Servo with external gyro, direct drive variable pitch or direct drive fixed pitch
     AP_Int8         _swash_type;                // Swash Type Setting - either 3-servo CCPM or H1 Mechanical Mixing
     AP_Int16        _ext_gyro_gain_std;         // PWM sent to external gyro on ch7 when tail type is Servo w/ ExtGyro

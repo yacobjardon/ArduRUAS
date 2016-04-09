@@ -387,7 +387,7 @@ void Copter::avoidance_maneuver()
     response = 10*(avoidance_gain)/(_trafic_distance*sqrt(safety_bubble)-1); // response parameter as calculated in the MATLAB simulations
 
     avoidance_accel_roll  = _rel_v.x * response; // response in roll
-    avoidance_accel_pitch = _rel_v.y * response; // respose in pitch
+    //avoidance_accel_pitch = _rel_v.y * response; // respose in pitch
     avoidance_roll_angle_cd = atanf(avoidance_accel_roll/9.81);   // bank angle calculation
     avoidance_pitch_angle_cd = atanf(avoidance_accel_pitch/9.81); // pitch angle calculation
 

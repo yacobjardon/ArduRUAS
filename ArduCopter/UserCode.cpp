@@ -39,8 +39,8 @@ void Copter::userhook_SlowLoop()
       Vector3f new_v = read_rel_velocity();
       float new_distance = pythagorous2(new_d.x, new_d.y);
 
-      rel_v.x = -25;//100/new_d.y;
-      rel_v.y = -25;//100/new_d.x; //these are static for testing, delete in flight
+      rel_v.x = 25 * new_d.x / new_distance;//100/new_d.y;
+      rel_v.y = 25 * new_d.y / new_distance;//100/new_d.x; //these are static for testing, delete in flight
       rel_v.z = 0;
 
   /*

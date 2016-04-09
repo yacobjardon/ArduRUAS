@@ -54,7 +54,7 @@ public:
 
 	// rate_controller_run - run lowest level body-frame rate controller and send outputs to the motors
 	// should be called at 100hz or more
-	virtual void rate_controller_run(float b_pitch_radio);
+	virtual void rate_controller_run();
 
     // get lean angle max for pilot input that prioritises altitude hold over lean angle
     // NOTE: returns centi-degrees
